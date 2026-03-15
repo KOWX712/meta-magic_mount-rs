@@ -7,7 +7,6 @@ use std::{
     fs::{self, create_dir_all},
     io::Write,
     path::{Path, PathBuf},
-    process::Command,
 };
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -112,38 +111,25 @@ pub fn update_desc(
         if umount { "UM" } else { "" }
     );
 
-    if ksucalls::KSU.load(std::sync::atomic::Ordering::Relaxed) {
-        Command::new("ksud")
-            .arg("module")
-            .arg("config")
-            .arg("set")
-            .arg("override.description")
-            .arg(&text)
-            .status()?;
-    } else {
-        let prop = fs::read_to_string(defs::MODULE_PROP)?;
+    let prop = fs::read_to_string(defs::MODULE_PROP)?;
+    let mut temp = tempfile::Builder::new().tempfile()?;
 
-        if let Ok(mut f) = fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .truncate(true)
-            .open(defs::MODULE_PROP)
-        {
-            let new: Vec<String> = prop
-                .lines()
-                .map(|l| {
-                    if l.starts_with("description") {
-                        format!("description={text}")
-                    } else {
-                        l.to_string()
-                    }
-                })
-                .collect();
+    let new: Vec<String> = prop
+        .lines()
+        .map(|l| {
+            if l.starts_with("description") {
+                format!("description={text}")
+            } else {
+                l.to_string()
+            }
+        })
+        .collect();
 
-            f.write_all(new.join("\n").as_bytes())
-                .map_err(|e| log::error!("Failed to update description: {e}"))
-                .unwrap();
-        }
-    }
+    temp.write_all(new.join("\n").as_bytes())
+        .map_err(|e| log::error!("Failed to update description: {e}"))
+        .unwrap();
+
+    fs::rename(temp.path(), defs::MODULE_PROP)?;
+
     Ok(())
 }

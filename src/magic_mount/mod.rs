@@ -27,6 +27,7 @@ use crate::{
 };
 
 static MOUNTDED_FILES: AtomicU32 = AtomicU32::new(0);
+static IGNORED_FILES: AtomicU32 = AtomicU32::new(0);
 static MOUNTDED_SYMBOLS_FILES: AtomicU32 = AtomicU32::new(0);
 
 struct MagicMount {
@@ -165,6 +166,9 @@ impl MagicMount {
                             "cannot create tmpfs on {}, ignore: {name}",
                             self.path.display()
                         );
+                        let ignored_files =
+                            IGNORED_FILES.load(std::sync::atomic::Ordering::Relaxed) + 1;
+                        IGNORED_FILES.store(ignored_files, std::sync::atomic::Ordering::Relaxed);
                         node.skip = true;
                         continue;
                     }
@@ -355,10 +359,14 @@ where
     }
     let mounted_symbols = MOUNTDED_SYMBOLS_FILES.load(std::sync::atomic::Ordering::Relaxed);
     let mounted_files = MOUNTDED_FILES.load(std::sync::atomic::Ordering::Relaxed);
-    log::info!("mounted files: {mounted_files}, mounted symlinks: {mounted_symbols}");
+    let ignored_files = IGNORED_FILES.load(std::sync::atomic::Ordering::Relaxed);
+    log::info!(
+        "mounted files: {mounted_files}, mounted symlinks: {mounted_symbols}, ignored files: {ignored_files}"
+    );
     crate::utils::update_desc(
         mounted_files,
         mounted_symbols,
+        ignored_files,
         #[cfg(any(target_os = "linux", target_os = "android"))]
         umount,
     )?;

@@ -103,10 +103,11 @@ fn get_root_impl() -> String {
 pub fn update_desc(
     files: u32,
     symbols: u32,
+    ignore: u32,
     #[cfg(any(target_os = "linux", target_os = "android"))] umount: bool,
 ) -> Result<()> {
     let text = format!(
-        "[Root {},{} file({files}), symbol({symbols})] An implementation of a metamodule using Magic Mount.",
+        "[Root {},{} file({files}), symbol({symbols}), ignore({ignore})] An implementation of a metamodule using Magic Mount.",
         get_root_impl(),
         if umount { "UM" } else { "" }
     );

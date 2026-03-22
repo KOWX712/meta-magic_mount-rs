@@ -9,9 +9,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{anyhow, bail, Context, Result};
 #[cfg(any(target_os = "linux", target_os = "android"))]
-use extattr::{Flags as XattrFlags, lgetxattr, lsetxattr};
+use extattr::{lgetxattr, lsetxattr, Flags as XattrFlags};
 use regex_lite::Regex;
 
 use crate::defs;
@@ -107,7 +107,7 @@ pub fn update_desc(
     #[cfg(any(target_os = "linux", target_os = "android"))] umount: bool,
 ) -> Result<()> {
     let text = format!(
-        "[Root {},{} file({files}), symbol({symbols}), ignore({ignore})] An implementation of a metamodule using Magic Mount.",
+        "[Root {},{} file({files}), symbol({symbols}), ignore({ignore})]\\n An implementation of a metamodule using Magic Mount.",
         get_root_impl(),
         if umount { "UM" } else { "" }
     );

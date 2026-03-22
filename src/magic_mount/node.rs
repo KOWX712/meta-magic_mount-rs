@@ -10,7 +10,6 @@ use std::{
 };
 
 use anyhow::Result;
-use derivative::Derivative;
 use extattr::lgetxattr;
 use rustix::path::Arg;
 
@@ -38,26 +37,51 @@ impl From<FileType> for NodeFileType {
     }
 }
 
-#[derive(Derivative, Clone)]
-#[derivative(Debug)]
+#[derive(Clone)]
 pub struct Node {
     pub name: String,
     pub file_type: NodeFileType,
     pub children: HashMap<String, Self>,
     // the module that owned this node
     pub module_path: Option<PathBuf>,
-    #[derivative(Debug = "ignore")]
     pub replace: bool,
-    #[derivative(Debug = "ignore")]
     pub skip: bool,
 }
 
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.debug_tree(f, 0)
+    }
+}
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "u need to send '/data/adb/magic_mount/tree' to developer "
         )
+    }
+}
+
+impl Node {
+    fn debug_tree(&self, f: &mut fmt::Formatter<'_>, indent: usize) -> fmt::Result {
+        let indent_str = "  ".repeat(indent);
+
+        write!(f, "{}{} ({:?})", indent_str, self.name, self.file_type)?;
+        if let Some(path) = &self.module_path {
+            write!(f, " [{}]", path.display())?;
+        }
+        if self.replace {
+            write!(f, " [R]")?;
+        }
+        if self.skip {
+            write!(f, " [S]")?;
+        }
+        writeln!(f)?;
+
+        for child in self.children.values() {
+            child.debug_tree(f, indent + 1)?;
+        }
+        Ok(())
     }
 }
 

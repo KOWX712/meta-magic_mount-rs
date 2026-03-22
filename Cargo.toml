@@ -28,7 +28,6 @@ mimalloc = { version = "0.1.48", features = ["no_thp", "override"] }
 regex-lite = "0.1.9"
 fastrand = "2.3.0"
 tempfile = "3.27.0"
-derivative = "2.2.0"
 
 [build-dependencies]
 anyhow = "1.0.102"

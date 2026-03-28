@@ -328,7 +328,7 @@ where
         mount(mount_source, &tmp_dir, "tmpfs", MountFlags::empty(), None).context("mount tmp")?;
         mount_change(&tmp_dir, MountPropagationFlags::PRIVATE).context("make tmp private")?;
 
-        let _ret = MagicMount::new(
+        MagicMount::new(
             &root,
             Path::new("/"),
             tmp_dir.as_path(),
@@ -336,7 +336,7 @@ where
             #[cfg(any(target_os = "linux", target_os = "android"))]
             umount,
         )
-        .do_mount();
+        .do_mount()?;
         #[cfg(any(target_os = "linux", target_os = "android"))]
         {
             if crate::utils::ksucalls::KSU.load(std::sync::atomic::Ordering::Relaxed) {

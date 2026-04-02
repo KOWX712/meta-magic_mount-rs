@@ -64,22 +64,22 @@ impl Default for Config {
 
 impl Config {
     #[cfg(any(target_os = "linux", target_os = "android"))]
-    fn umount_enabled(&self) -> bool {
+    const fn umount_enabled(&self) -> bool {
         self.umount
     }
 
     #[cfg(not(any(target_os = "linux", target_os = "android")))]
-    fn umount_enabled(&self) -> bool {
+    const fn umount_enabled(&self) -> bool {
         false
     }
 
     #[cfg(any(target_os = "linux", target_os = "android"))]
-    fn set_umount_enabled(&mut self, enabled: bool) {
+    const fn set_umount_enabled(&mut self, enabled: bool) {
         self.umount = enabled;
     }
 
     #[cfg(not(any(target_os = "linux", target_os = "android")))]
-    fn set_umount_enabled(&mut self, _enabled: bool) {}
+    const fn set_umount_enabled(&mut self, _enabled: bool) {}
 
     pub fn load() -> Result<Self> {
         let content = fs::read_to_string(CONFIG_FILE).context("failed to read config file")?;
@@ -92,12 +92,12 @@ impl Config {
         Ok(config)
     }
 
-    pub fn load_or_default() -> Result<Self> {
+    pub fn load_or_default() -> Self {
         match Self::load() {
-            Ok(config) => Ok(config),
+            Ok(config) => config,
             Err(err) => {
                 log::warn!("Failed to load config, using default: {err}");
-                Ok(Self::default())
+                Self::default()
             }
         }
     }

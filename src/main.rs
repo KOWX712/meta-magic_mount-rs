@@ -26,7 +26,7 @@ use crate::{
 static GLOBAL: MiMalloc = MiMalloc;
 
 fn decode_hex(input: &str) -> Result<Vec<u8>> {
-    if input.len() % 2 != 0 {
+    if !input.len().is_multiple_of(2) {
         bail!("hex payload must contain an even number of characters");
     }
 
@@ -51,7 +51,7 @@ fn parse_payload_arg(args: &[String]) -> Result<&str> {
 }
 
 fn handle_show_config() -> Result<()> {
-    let config = Config::load_or_default()?;
+    let config = Config::load_or_default();
     let ignore_list = Config::read_ignore_list()?;
     println!("{}", serde_json::to_string(&config.into_api(ignore_list))?);
     Ok(())
@@ -65,7 +65,7 @@ fn handle_save_config(args: &[String]) -> Result<()> {
         serde_json::from_str(&payload_json).context("failed to parse config payload json")?;
 
     let ignore_list = payload.ignore_list.clone();
-    let mut config = Config::load_or_default()?;
+    let mut config = Config::load_or_default();
     config.apply_api_payload(payload);
     config.save()?;
     if let Some(ignore_list) = ignore_list {
@@ -104,7 +104,7 @@ fn main() -> Result<()> {
                 return Ok(());
             }
             "modules" => {
-                let config = Config::load_or_default()?;
+                let config = Config::load_or_default();
                 let modules = scanner::list_modules(MODULE_PATH, &config.partitions);
                 println!("{}", serde_json::to_string(&modules)?);
                 return Ok(());

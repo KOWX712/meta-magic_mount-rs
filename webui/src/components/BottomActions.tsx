@@ -11,28 +11,8 @@ import "./BottomActions.css";
 
 export default function BottomActions(props: ParentProps) {
   const [isActivePage, setIsActivePage] = createSignal(true);
-  const [keyboardLift, setKeyboardLift] = createSignal(0);
   let anchorRef: HTMLDivElement | undefined;
   let rootRef: HTMLDivElement | undefined;
-
-  function parsePixels(value: string): number {
-    const parsed = Number.parseFloat(value);
-
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  function getStaticBottomOffset(): number {
-    const styles = window.getComputedStyle(document.documentElement);
-    const navHeight = parsePixels(
-      styles.getPropertyValue("--bottom-nav-height"),
-    );
-    const safeAreaBottom = parsePixels(
-      styles.getPropertyValue("--safe-area-inset-bottom") ||
-        styles.getPropertyValue("--window-inset-bottom"),
-    );
-
-    return navHeight + safeAreaBottom;
-  }
 
   onMount(() => {
     const pageEl = anchorRef?.closest(".swipe-page");
@@ -55,66 +35,11 @@ export default function BottomActions(props: ParentProps) {
     onCleanup(() => observer.disconnect());
   });
 
-  onMount(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) {
-      return;
-    }
-    const activeViewport = viewport;
-
-    let rafId = 0;
-
-    function updateKeyboardInset() {
-      if (rafId) {
-        return;
-      }
-
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        const keyboardInset = Math.max(
-          0,
-          Math.round(
-            window.innerHeight -
-              activeViewport.height -
-              activeViewport.offsetTop,
-          ),
-        );
-        const nextLift = Math.max(
-          0,
-          keyboardInset - Math.round(getStaticBottomOffset()),
-        );
-
-        setKeyboardLift((prev) =>
-          Math.abs(prev - nextLift) < 2 ? prev : nextLift,
-        );
-      });
-    }
-
-    updateKeyboardInset();
-    activeViewport.addEventListener("resize", updateKeyboardInset);
-    activeViewport.addEventListener("scroll", updateKeyboardInset);
-    window.addEventListener("orientationchange", updateKeyboardInset);
-
-    onCleanup(() => {
-      if (rafId) {
-        window.cancelAnimationFrame(rafId);
-      }
-
-      activeViewport.removeEventListener("resize", updateKeyboardInset);
-      activeViewport.removeEventListener("scroll", updateKeyboardInset);
-      window.removeEventListener("orientationchange", updateKeyboardInset);
-    });
-  });
-
   createEffect(() => {
     if (!rootRef) {
       return;
     }
 
-    rootRef.style.setProperty(
-      "--bottom-actions-keyboard-lift",
-      `${keyboardLift()}px`,
-    );
     rootRef.toggleAttribute("inert", !isActivePage());
   });
 

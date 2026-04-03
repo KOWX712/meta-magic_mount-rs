@@ -1,9 +1,3 @@
-/**
- * Copyright 2025 Magic Mount-rs Authors
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import {
   For,
   Show,
@@ -16,27 +10,25 @@ import {
 } from "solid-js";
 
 import NavBar from "./components/NavBar";
-import Spinner from "./components/Spinner";
 import Toast from "./components/Toast";
 import TopBar from "./components/TopBar";
 import { configStore } from "./lib/stores/configStore";
 import { moduleStore } from "./lib/stores/moduleStore";
 import { sysStore } from "./lib/stores/sysStore";
 import { uiStore } from "./lib/stores/uiStore";
-import type { TabId } from "./lib/tabs";
-import { TABS } from "./lib/tabs";
 
 const loadStatusTab = () => import("./routes/StatusTab");
 const loadConfigTab = () => import("./routes/ConfigTab");
 const loadModulesTab = () => import("./routes/ModulesTab");
 const loadInfoTab = () => import("./routes/InfoTab");
+type TabId = "status" | "config" | "modules" | "info";
 
 const routes = [
   { id: "status", load: loadStatusTab, component: lazy(loadStatusTab) },
   { id: "config", load: loadConfigTab, component: lazy(loadConfigTab) },
   { id: "modules", load: loadModulesTab, component: lazy(loadModulesTab) },
   { id: "info", load: loadInfoTab, component: lazy(loadInfoTab) },
-] satisfies { id: TabId; load: () => Promise<unknown>; component: any }[];
+] as const;
 
 export default function App() {
   const [activeTab, setActiveTab] = createSignal<TabId>("status");
@@ -52,8 +44,28 @@ export default function App() {
   let touchStartX = 0;
   let touchStartY = 0;
 
+  const visibleTabs = createMemo(() => routes.map((r) => r.id));
+
+  const baseTranslateX = createMemo(() => {
+    const index = visibleTabs().indexOf(activeTab());
+    return index * -(100 / visibleTabs().length);
+  });
+
+  createEffect(() => {
+    const currentTab = activeTab();
+    setVisitedTabs((prev) => {
+      if (prev.has(currentTab)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.add(currentTab);
+      return next;
+    });
+  });
+
   function isEditingTarget(event: TouchEvent) {
     const activeElement = document.activeElement;
+
     if (
       activeElement instanceof HTMLElement &&
       (activeElement.matches("input, textarea, select") ||
@@ -67,6 +79,7 @@ export default function App() {
       if (!(node instanceof HTMLElement)) {
         continue;
       }
+
       if (
         node.matches("input, textarea, select, md-outlined-text-field") ||
         node.matches("[data-disable-tab-swipe='true']") ||
@@ -83,29 +96,10 @@ export default function App() {
     return false;
   }
 
-  function switchTab(id: TabId) {
-    setActiveTab(id);
-  }
-
-  createEffect(() => {
-    const currentTab = activeTab();
-    setVisitedTabs((prev) => {
-      if (prev.has(currentTab)) {
-        return prev;
-      }
-
-      const next = new Set(prev);
-      next.add(currentTab);
-
-      return next;
-    });
-  });
-
   function handleTouchStart(e: TouchEvent) {
     if (isEditingTarget(e)) {
       setIsDragging(false);
       setDragOffset(0);
-
       return;
     }
 
@@ -120,6 +114,7 @@ export default function App() {
     if (!isDragging()) {
       return;
     }
+
     const currentX = e.changedTouches[0].screenX;
     const currentY = e.changedTouches[0].screenY;
     let diffX = currentX - touchStartX;
@@ -135,47 +130,53 @@ export default function App() {
     if (dragAxisLocked() === "y") {
       setIsDragging(false);
       setDragOffset(0);
-
       return;
     }
+
     if (e.cancelable) {
       e.preventDefault();
     }
-    const currentIndex = TABS.findIndex((t) => t.id === activeTab());
+
+    const tabs = visibleTabs();
+    const currentIndex = tabs.indexOf(activeTab());
+
     if (
       (currentIndex === 0 && diffX > 0) ||
-      (currentIndex === TABS.length - 1 && diffX < 0)
+      (currentIndex === tabs.length - 1 && diffX < 0)
     ) {
-      diffX = diffX / 3;
+      diffX /= 3;
     }
+
     setDragOffset(diffX);
   }
 
   function handleTouchEnd() {
     if (!isDragging()) {
       setDragAxisLocked(null);
-
       return;
     }
+
     setIsDragging(false);
     const threshold = containerWidth() * 0.33 || 80;
-    const currentIndex = TABS.findIndex((t) => t.id === activeTab());
+    const tabs = visibleTabs();
+    const currentIndex = tabs.indexOf(activeTab());
     let nextIndex = currentIndex;
-    if (dragOffset() < -threshold && currentIndex < TABS.length - 1) {
+
+    if (dragOffset() < -threshold && currentIndex < tabs.length - 1) {
       nextIndex = currentIndex + 1;
     } else if (dragOffset() > threshold && currentIndex > 0) {
       nextIndex = currentIndex - 1;
     }
+
     if (nextIndex !== currentIndex) {
-      switchTab(TABS[nextIndex].id);
+      setActiveTab(tabs[nextIndex]);
     }
+
     setDragAxisLocked(null);
     setDragOffset(0);
   }
 
   onMount(async () => {
-    let preloadTimer = 0;
-
     await uiStore.init();
     await Promise.all([
       configStore.loadConfig(),
@@ -184,6 +185,7 @@ export default function App() {
     ]);
 
     const pendingRoutes = routes.filter((route) => route.id !== activeTab());
+    let preloadTimer = 0;
     let nextIndex = 0;
 
     function preloadNextRoute() {
@@ -200,47 +202,31 @@ export default function App() {
     }
 
     preloadTimer = window.setTimeout(preloadNextRoute, 250);
-
     onCleanup(() => window.clearTimeout(preloadTimer));
   });
-
-  const visibleTabs = createMemo(() => routes.map((route) => route.id));
-  const baseTranslateX = createMemo(
-    () =>
-      visibleTabs().indexOf(activeTab()) *
-      -(100 / Math.max(visibleTabs().length, 1)),
-  );
 
   return (
     <div class="app-root">
       <Show
         when={uiStore.isReady}
         fallback={
-          <div
-            style={{
-              "display": "flex",
-              "justify-content": "center",
-              "align-items": "center",
-              "height": "100vh",
-              "flex-direction": "column",
-              "gap": "16px",
-            }}
-          >
-            <Spinner />
-            <span style={{ opacity: 0.6 }}>Loading...</span>
+          <div class="loading-container">
+            <div class="spinner" />
+            <span class="loading-text">Loading...</span>
           </div>
         }
       >
         <TopBar />
         <main
           class="main-content"
-          ref={(el) => {
+          ref={(element) => {
             const observer = new ResizeObserver((entries) => {
               for (const entry of entries) {
                 setContainerWidth(entry.contentRect.width);
               }
             });
-            observer.observe(el);
+            observer.observe(element);
+            onCleanup(() => observer.disconnect());
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -250,21 +236,17 @@ export default function App() {
           <div
             class="swipe-track"
             style={{
-              transform: `translateX(calc(${baseTranslateX()}% + ${dragOffset()}px))`,
-              width: `${visibleTabs().length * 100}%`,
-              transition: isDragging()
+              "--tab-count": visibleTabs().length,
+              "--swipe-base": `${baseTranslateX()}%`,
+              "--swipe-offset": `${dragOffset()}px`,
+              "--swipe-transition": isDragging()
                 ? "none"
-                : "transform 0.3s cubic-bezier(0.25, 0.8, 0.5, 1)",
+                : "transform 0.4s cubic-bezier(0.2, 1, 0.2, 1)",
             }}
           >
             <For each={routes}>
               {(route) => (
-                <div
-                  class="swipe-page"
-                  style={{
-                    width: `${100 / Math.max(visibleTabs().length, 1)}%`,
-                  }}
-                >
+                <div class="swipe-page">
                   <Show
                     when={visitedTabs().has(route.id)}
                     fallback={<div class="page-scroller" aria-hidden="true" />}
@@ -278,7 +260,11 @@ export default function App() {
             </For>
           </div>
         </main>
-        <NavBar activeTab={activeTab()} onTabChange={switchTab} />
+        <NavBar
+          activeTab={activeTab()}
+          onTabChange={setActiveTab as (id: string) => void}
+          tabs={routes}
+        />
       </Show>
       <Toast />
     </div>

@@ -1,7 +1,6 @@
 /**
- * Copyright 2025 Magic Mount-rs Authors
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright 2025 Meta-Hybrid Mount Authors SPDX-License-Identifier:
+ * GPL-3.0-or-later
  */
 
 import type { ParentProps } from "solid-js";
@@ -74,6 +73,7 @@ export default function BottomActions(props: ParentProps) {
       if (rafId) {
         window.cancelAnimationFrame(rafId);
       }
+
       activeViewport.removeEventListener("resize", updateKeyboardInset);
       activeViewport.removeEventListener("scroll", updateKeyboardInset);
       window.removeEventListener("orientationchange", updateKeyboardInset);

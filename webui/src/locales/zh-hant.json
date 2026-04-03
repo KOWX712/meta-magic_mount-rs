@@ -3,6 +3,8 @@
   "common": {
     "appName": "Magic Mount",
     "saving": "保存中...",
+    "theme": "切換主題",
+    "language": "語言",
     "themeAuto": "自動 (跟隨系統)",
     "themeLight": "淺色模式",
     "themeDark": "深色模式",
@@ -21,6 +23,8 @@
     "info": "關於"
   },
   "status": {
+    "storageTitle": "後端策略",
+    "modeStats": "模式分佈",
     "sysInfoTitle": "系統詳情",
     "deviceTitle": "設備信息",
     "moduleTitle": "模塊概覽",
@@ -28,7 +32,10 @@
     "modelLabel": "機型",
     "androidLabel": "Android版本",
     "kernelLabel": "內核版本",
+    "kernel": "內核",
     "selinuxLabel": "SELinux",
+    "selinux": "SELinux",
+    "activePartitions": "分區",
     "loadError": "加載系統狀態失敗",
     "refresh": "刷新"
   },
@@ -66,6 +73,18 @@
     "searchPlaceholder": "搜索模塊...",
     "filterLabel": "篩選:",
     "filterAll": "全部",
+    "modes": {
+      "overlay": "OverlayFS",
+      "magic": "Magic Mount",
+      "umount": "Umount",
+      "short": {
+        "overlay": "Overlay",
+        "magic": "Magic",
+        "ignore": "忽略"
+      }
+    },
+    "emptyState": "未找到模塊。",
+    "umountHiddenHint": "已卸載的模塊已隱藏。",
     "toggleError": "操作失敗",
     "authorLabel": "作者",
     "descriptionLabel": "描述",

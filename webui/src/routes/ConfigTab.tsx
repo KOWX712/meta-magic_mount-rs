@@ -7,14 +7,12 @@ import { configStore } from "../lib/stores/configStore";
 import { uiStore } from "../lib/stores/uiStore";
 import type { AppConfig } from "../types";
 
-import "./ConfigTab.css";
-import "@material/web/textfield/outlined-text-field.js";
 import "@material/web/button/filled-button.js";
-import "@material/web/iconbutton/filled-tonal-icon-button.js";
 import "@material/web/icon/icon.js";
-import "@material/web/list/list.js";
-import "@material/web/list/list-item.js";
-import "@material/web/switch/switch.js";
+import "@material/web/iconbutton/filled-tonal-icon-button.js";
+import "@material/web/ripple/ripple.js";
+import "@material/web/textfield/outlined-text-field.js";
+import "./ConfigTab.css";
 
 export default function ConfigTab() {
   const [initialConfigStr, setInitialConfigStr] = createSignal("");
@@ -30,7 +28,6 @@ export default function ConfigTab() {
   createEffect(() => {
     if (
       !configStore.loading &&
-      configStore.config &&
       (!initialConfigStr() ||
         initialConfigStr() === JSON.stringify(configStore.config))
     ) {
@@ -38,35 +35,31 @@ export default function ConfigTab() {
     }
   });
 
+  function updateConfig<K extends keyof AppConfig>(
+    key: K,
+    value: AppConfig[K],
+  ) {
+    configStore.setConfig({ ...configStore.config, [key]: value });
+  }
+
   function save() {
-    configStore.saveConfig().then(() => {
+    void configStore.saveConfig().then(() => {
       setInitialConfigStr(JSON.stringify(configStore.config));
     });
   }
 
   function reload() {
-    configStore.loadConfig().then(() => {
+    void configStore.loadConfig().then(() => {
       setInitialConfigStr(JSON.stringify(configStore.config));
     });
   }
 
-  function toggle(key: keyof AppConfig) {
-    const current = configStore.config[key];
-    if (typeof current === "boolean") {
-      configStore.setConfig({ ...configStore.config, [key]: !current });
+  function toggleBool(key: keyof AppConfig) {
+    const currentValue = configStore.config[key];
+
+    if (typeof currentValue === "boolean") {
+      updateConfig(key, !currentValue as AppConfig[typeof key]);
     }
-  }
-
-  function handleInput(key: keyof AppConfig, value: string) {
-    configStore.setConfig({ ...configStore.config, [key]: value });
-  }
-
-  function handlePartitionsChange(values: string[]) {
-    configStore.setConfig({ ...configStore.config, partitions: values });
-  }
-
-  function handleIgnoreListChange(values: string[]) {
-    configStore.setConfig({ ...configStore.config, ignoreList: values });
   }
 
   return (
@@ -92,12 +85,12 @@ export default function ConfigTab() {
 
             <div class="input-stack">
               <md-outlined-text-field
-                prop:label={uiStore.L.config.mountSource}
-                prop:value={configStore.config.mountsource}
-                on:input={(e: Event) =>
-                  handleInput(
+                label={uiStore.L.config.mountSource}
+                value={configStore.config.mountsource}
+                onInput={(event: InputEvent) =>
+                  updateConfig(
                     "mountsource",
-                    (e.target as HTMLInputElement).value,
+                    (event.currentTarget as HTMLInputElement).value,
                   )
                 }
                 class="full-width-field"
@@ -121,13 +114,12 @@ export default function ConfigTab() {
                 <span class="card-desc">{uiStore.L.config.partitionsDesc}</span>
               </div>
             </div>
-            <div class="p-input">
-              <ChipInput
-                values={configStore.config.partitions}
-                placeholder="e.g. product, system_ext..."
-                onChange={handlePartitionsChange}
-              />
-            </div>
+
+            <ChipInput
+              values={configStore.config.partitions}
+              placeholder="e.g. product, system_ext..."
+              onValuesChange={(values) => updateConfig("partitions", values)}
+            />
           </div>
         </section>
 
@@ -142,61 +134,54 @@ export default function ConfigTab() {
                 </md-icon>
               </div>
               <div class="card-text">
-                <span class="card-title">
-                  {(uiStore.L.config as any).ignoreList ?? "Ignore List"}
-                </span>
-                <span class="card-desc">
-                  {(uiStore.L.config as any).ignoreListDesc ??
-                    "Directories to exclude from mounting"}
-                </span>
+                <span class="card-title">{uiStore.L.config.ignoreList}</span>
+                <span class="card-desc">{uiStore.L.config.ignoreListDesc}</span>
               </div>
             </div>
-            <div class="p-input">
-              <ChipInput
-                values={configStore.config.ignoreList}
-                placeholder="/data/adb/modules/..."
-                onChange={handleIgnoreListChange}
-              />
-            </div>
+
+            <ChipInput
+              values={configStore.config.ignoreList}
+              placeholder="/data/adb/modules/..."
+              onValuesChange={(values) => updateConfig("ignoreList", values)}
+            />
           </div>
         </section>
 
         <section class="config-group">
-          <div class="config-card no-padding-v">
-            <md-list>
-              <md-list-item
-                prop:type="button"
-                on:click={() => toggle("umount")}
-              >
-                <div slot="start">
+          <div class="options-grid">
+            <button
+              class={`option-tile clickable tertiary ${configStore.config.umount ? "active" : ""}`}
+              onClick={() => toggleBool("umount")}
+              type="button"
+            >
+              <md-ripple />
+              <div class="tile-top">
+                <div class="tile-icon">
                   <md-icon>
                     <svg viewBox="0 0 24 24">
                       <path d={ICONS.anchor} />
                     </svg>
                   </md-icon>
                 </div>
-                <div slot="headline">{uiStore.L.config.umountLabel}</div>
-                <div slot="supporting-text">
+              </div>
+              <div class="tile-bottom">
+                <span class="tile-label">{uiStore.L.config.umountLabel}</span>
+                <span class="card-desc">
                   {configStore.config.umount
                     ? uiStore.L.config.umountOn
                     : uiStore.L.config.umountOff}
-                </div>
-                <md-switch
-                  slot="end"
-                  prop:selected={configStore.config.umount}
-                  attr:touch-target="wrapper"
-                />
-              </md-list-item>
-            </md-list>
+                </span>
+              </div>
+            </button>
           </div>
         </section>
       </div>
 
       <BottomActions>
         <md-filled-tonal-icon-button
-          on:click={reload}
-          prop:disabled={configStore.loading}
-          prop:title={uiStore.L.config.reload}
+          onClick={reload}
+          disabled={configStore.loading}
+          title={uiStore.L.config.reload}
         >
           <md-icon>
             <svg viewBox="0 0 24 24">
@@ -208,8 +193,8 @@ export default function ConfigTab() {
         <div class="spacer" />
 
         <md-filled-button
-          on:click={save}
-          prop:disabled={configStore.saving || !isDirty()}
+          onClick={save}
+          disabled={configStore.saving || !isDirty()}
         >
           <md-icon slot="icon">
             <svg viewBox="0 0 24 24">

@@ -11,22 +11,23 @@ import { ICONS } from "../lib/constants";
 import { moduleStore } from "../lib/stores/moduleStore";
 import { uiStore } from "../lib/stores/uiStore";
 
-import "./ModulesTab.css";
-import "@material/web/iconbutton/filled-tonal-icon-button.js";
 import "@material/web/button/filled-button.js";
 import "@material/web/icon/icon.js";
+import "@material/web/iconbutton/filled-tonal-icon-button.js";
+import "./ModulesTab.css";
 
 export default function ModulesTab() {
   const [searchQuery, setSearchQuery] = createSignal("");
   const [expandedId, setExpandedId] = createSignal<string | null>(null);
 
   const filteredModules = createMemo(() =>
-    moduleStore.modules.filter((m) => {
-      const q = searchQuery().toLowerCase();
-      const matchSearch =
-        m.name.toLowerCase().includes(q) || m.id.toLowerCase().includes(q);
+    moduleStore.modules.filter((module) => {
+      const query = searchQuery().toLowerCase();
 
-      return matchSearch;
+      return (
+        module.name.toLowerCase().includes(query) ||
+        module.id.toLowerCase().includes(query)
+      );
     }),
   );
 
@@ -53,7 +54,7 @@ export default function ModulesTab() {
               class="search-input"
               placeholder={uiStore.L.modules.searchPlaceholder}
               value={searchQuery()}
-              onInput={(e) => setSearchQuery(e.currentTarget.value)}
+              onInput={(event) => setSearchQuery(event.currentTarget.value)}
             />
           </div>
         </div>
@@ -63,7 +64,7 @@ export default function ModulesTab() {
             when={!moduleStore.loading}
             fallback={
               <For each={Array.from({ length: 6 })}>
-                {() => <Skeleton height="64px" borderRadius="16px" />}
+                {() => <Skeleton class="skeleton-module-card" />}
               </For>
             }
           >
@@ -87,31 +88,31 @@ export default function ModulesTab() {
               }
             >
               <For each={filteredModules()}>
-                {(mod) => (
+                {(module) => (
                   <div
-                    class={`module-card ${expandedId() === mod.id ? "expanded" : ""} ${mod.is_mounted ? "" : "unmounted"}`}
+                    class={`module-card ${expandedId() === module.id ? "expanded" : ""} ${module.is_mounted ? "" : "unmounted"}`}
                   >
                     <div
                       class="module-header"
-                      onClick={() => toggleExpand(mod.id)}
+                      onClick={() => toggleExpand(module.id)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) =>
-                        (e.key === "Enter" || e.key === " ") &&
-                        toggleExpand(mod.id)
+                      onKeyDown={(event) =>
+                        (event.key === "Enter" || event.key === " ") &&
+                        toggleExpand(module.id)
                       }
                     >
                       <div class="module-info">
-                        <div class="module-name">{mod.name}</div>
+                        <div class="module-name">{module.name}</div>
                         <div class="module-meta">
-                          <span class="module-id">{mod.id}</span>
-                          <span class="version-badge">{mod.version}</span>
+                          <span class="module-id">{module.id}</span>
+                          <span class="version-badge">{module.version}</span>
                         </div>
                       </div>
                       <div
-                        class={`mode-indicator ${getModeClass(mod.is_mounted)}`}
+                        class={`mode-indicator ${getModeClass(module.is_mounted)}`}
                       >
-                        {getModeLabel(mod.is_mounted)}
+                        {getModeLabel(module.is_mounted)}
                       </div>
                     </div>
 
@@ -123,7 +124,7 @@ export default function ModulesTab() {
                               {uiStore.L.modules.descriptionLabel}
                             </div>
                             <p class="module-desc">
-                              {mod.description ||
+                              {module.description ||
                                 uiStore.L.modules.noDescriptionLabel}
                             </p>
                           </div>
@@ -133,7 +134,7 @@ export default function ModulesTab() {
                               {uiStore.L.modules.authorLabel}
                             </div>
                             <div class="module-author">
-                              {mod.author || uiStore.L.modules.unknownLabel}
+                              {module.author || uiStore.L.modules.unknownLabel}
                             </div>
                           </div>
                         </div>
@@ -150,7 +151,9 @@ export default function ModulesTab() {
       <BottomActions>
         <div class="spacer" />
         <md-filled-tonal-icon-button
-          onClick={() => moduleStore.loadModules()}
+          onClick={() => {
+            moduleStore.loadModules();
+          }}
           title={uiStore.L.modules.reload}
         >
           <md-icon>

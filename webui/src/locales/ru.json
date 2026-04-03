@@ -23,6 +23,8 @@
     "info": "Инфо"
   },
   "status": {
+    "storageTitle": "Стратегия бэкенда",
+    "modeStats": "Распределение режимов",
     "sysInfoTitle": "Информация о системе",
     "deviceTitle": "Устройство",
     "moduleTitle": "Модули",
@@ -30,7 +32,10 @@
     "modelLabel": "Модель",
     "androidLabel": "Android",
     "kernelLabel": "Ядро",
+    "kernel": "Ядро",
     "selinuxLabel": "SELinux",
+    "selinux": "SELinux",
+    "activePartitions": "Разделы",
     "loadError": "Не удалось загрузить состояние системы",
     "refresh": "Обновить"
   },
@@ -68,6 +73,18 @@
     "searchPlaceholder": "Поиск модулей...",
     "filterLabel": "Фильтр:",
     "filterAll": "Все",
+    "modes": {
+      "overlay": "OverlayFS",
+      "magic": "Magic Mount",
+      "umount": "Umount",
+      "short": {
+        "overlay": "Overlay",
+        "magic": "Magic",
+        "ignore": "Игнор"
+      }
+    },
+    "emptyState": "Модули не найдены.",
+    "umountHiddenHint": "Размонтированные модули скрыты.",
     "toggleError": "Не удалось переключить",
     "authorLabel": "Автор",
     "descriptionLabel": "Описание",

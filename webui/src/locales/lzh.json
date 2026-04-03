@@ -23,6 +23,8 @@
     "info": "識"
   },
   "status": {
+    "storageTitle": "後端之策",
+    "modeStats": "諸式之分",
     "sysInfoTitle": "天工詳錄",
     "deviceTitle": "器之形質",
     "moduleTitle": "模概覽",
@@ -30,7 +32,10 @@
     "modelLabel": "器型",
     "androidLabel": "機人之版",
     "kernelLabel": "核之版",
+    "kernel": "核",
     "selinuxLabel": "安界",
+    "selinux": "安界",
+    "activePartitions": "諸區",
     "loadError": "載系統狀不成",
     "refresh": "更觀"
   },
@@ -68,6 +73,18 @@
     "searchPlaceholder": "索模…",
     "filterLabel": "揀：",
     "filterAll": "盡",
+    "modes": {
+      "overlay": "OverlayFS",
+      "magic": "Magic Mount",
+      "umount": "卸載",
+      "short": {
+        "overlay": "Overlay",
+        "magic": "Magic",
+        "ignore": "略"
+      }
+    },
+    "emptyState": "未得模也。",
+    "umountHiddenHint": "已卸之模，今藏之。",
     "toggleError": "操持不成",
     "authorLabel": "作者",
     "descriptionLabel": "釋義",

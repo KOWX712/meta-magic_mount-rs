@@ -17,3 +17,9 @@ declare module "solid-js" {
     interface IntrinsicElements extends ElementProps<HTMLElementTagNameMap> {}
   }
 }
+
+declare global {
+  interface Window {
+    litDisableBundleWarning: boolean;
+  }
+}

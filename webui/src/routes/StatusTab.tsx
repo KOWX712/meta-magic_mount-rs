@@ -1,9 +1,3 @@
-/**
- * Copyright 2025 Magic Mount-rs Authors
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import { Show, createMemo, createSignal } from "solid-js";
 
 import BottomActions from "../components/BottomActions";
@@ -14,56 +8,44 @@ import { moduleStore } from "../lib/stores/moduleStore";
 import { sysStore } from "../lib/stores/sysStore";
 import { uiStore } from "../lib/stores/uiStore";
 
-import "./StatusTab.css";
-import "@material/web/icon/icon.js";
-import "@material/web/iconbutton/icon-button.js";
-import "@material/web/button/filled-tonal-button.js";
-import "@material/web/iconbutton/filled-tonal-icon-button.js";
-import "@material/web/dialog/dialog.js";
 import "@material/web/button/text-button.js";
+import "@material/web/dialog/dialog.js";
+import "@material/web/icon/icon.js";
+import "@material/web/iconbutton/filled-tonal-icon-button.js";
+import "./StatusTab.css";
+
+const STAR_PATH = "M12 2.25c.19 5.34 4.41 9.56 9.75 9.75-5.34.19-9.56 4.41-9.75 9.75-.19-5.34-4.41-9.56-9.75-9.75C7.59 11.81 11.81 7.59 12 2.25z";
 
 export default function StatusTab() {
-  // function copyDebugInfo() {
-  //   const info =
-  //     `Magic Mount v${sysStore.version}\n` +
-  //     `Model: ${sysStore.device.model}\n` +
-  //     `Android: ${sysStore.device.android}\n` +
-  //     `Kernel: ${sysStore.device.kernel}\n` +
-  //     `SELinux: ${sysStore.device.selinux}`;
-  //   navigator.clipboard.writeText(info);
-  // }
-
   const [showRebootConfirm, setShowRebootConfirm] = createSignal(false);
 
-  function handleReboot() {
-    setShowRebootConfirm(false);
-    sysStore.rebootDevice();
-  }
-
   const mountedCount = createMemo(
-    () => moduleStore.modules?.filter((m) => m.is_mounted).length ?? 0,
+    () => moduleStore.modules.filter((module) => module.is_mounted).length,
   );
-  const isSelinuxEnforcing = createMemo(
-    () => sysStore.device.selinux === "Enforcing",
+
+  const moduleStatsReady = createMemo(
+    () => !moduleStore.loading && moduleStore.hasLoaded,
   );
+
+  function reboot() {
+    setShowRebootConfirm(false);
+    void sysStore.rebootDevice();
+  }
 
   return (
     <>
       <md-dialog
-        prop:open={showRebootConfirm()}
-        on:close={() => setShowRebootConfirm(false)}
-        style={{
-          "--md-dialog-scrim-color": "transparent",
-          "--md-sys-color-scrim": "transparent",
-        }}
+        open={showRebootConfirm()}
+        onClose={() => setShowRebootConfirm(false)}
+        class="transparent-scrim"
       >
         <div slot="headline">{uiStore.L.common.rebootTitle}</div>
         <div slot="content">{uiStore.L.common.rebootConfirm}</div>
         <div slot="actions">
-          <md-text-button on:click={() => setShowRebootConfirm(false)}>
+          <md-text-button onClick={() => setShowRebootConfirm(false)}>
             {uiStore.L.common.cancel}
           </md-text-button>
-          <md-text-button on:click={handleReboot}>
+          <md-text-button onClick={reboot}>
             {uiStore.L.common.reboot}
           </md-text-button>
         </div>
@@ -71,140 +53,116 @@ export default function StatusTab() {
 
       <div class="dashboard-grid">
         <div class="hero-card">
-          <div class="hero-decoration">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7.5 5.6L10 0l2.5 5.6L18 8l-5.5 2.4L10 16l-2.5-5.6L2 8l5.5-2.4zm12 9.4l1.5-3 1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5 3-1.5zm-3-8l1.25-2.5 1.25 2.5 2.5 1.25-2.5 1.25-1.25 2.5-1.25-2.5-2.5-1.25 2.5-1.25z" />
+          <div class="hero-bg-decoration">
+            <svg viewBox="0 0 24 24">
+              <path d={STAR_PATH} />
             </svg>
           </div>
-
-          <div class="hero-content">
-            <div class="hero-label-group">
-              <div class="hero-icon-circle">
-                <md-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path d={ICONS.home} />
-                  </svg>
-                </md-icon>
+          <Show
+            when={!sysStore.loading}
+            fallback={
+              <div class="skeleton-col">
+                <Skeleton class="skeleton-hero-label" />
+                <Skeleton class="skeleton-hero-title" />
               </div>
-              <span class="hero-title">{uiStore.L.status.deviceTitle}</span>
-            </div>
-            <div class="hero-main-info">
-              <Show
-                when={!sysStore.loading}
-                fallback={
-                  <>
-                    <Skeleton width="150px" height="32px" />
-                    <Skeleton width="80px" height="24px" />
-                  </>
-                }
-              >
-                <span class="device-model">{sysStore.device.model}</span>
-                <div class="version-pill">
-                  <span>Magic Mount v{sysStore.version}</span>
-                </div>
+            }
+          >
+            <div class="hero-content">
+              <span class="hero-greeting">Welcome to</span>
+              <span class="hero-value">Magic Mount-rs</span>
+              <Show when={sysStore.device.model && sysStore.device.model !== "-"}>
+                <span class="hero-subtitle">{sysStore.device.model}</span>
               </Show>
             </div>
-          </div>
-          <div class="hero-actions" />
+          </Show>
         </div>
 
-        <div class="stats-row">
-          <div class="stat-card">
+        <div class="metrics-row">
+          <div class="metric-card">
             <Show
-              when={!sysStore.loading}
-              fallback={
-                <>
-                  <Skeleton width="40px" height="32px" />
-                  <Skeleton width="60px" height="12px" />
-                </>
-              }
+              when={moduleStatsReady()}
+              fallback={<Skeleton class="skeleton-metric" />}
             >
-              <div class="stat-value">{mountedCount()}</div>
-              <div class="stat-label">{uiStore.L.status.moduleActive}</div>
-            </Show>
-          </div>
-
-          <div class="stat-card">
-            <Show
-              when={!sysStore.loading}
-              fallback={
-                <>
-                  <Skeleton width="40px" height="32px" />
-                  <Skeleton width="60px" height="12px" />
-                </>
-              }
-            >
-              <div class="stat-value">
-                {configStore.config?.mountsource ?? "-"}
+              <div class="metric-icon-bg">
+                <svg viewBox="0 0 24 24">
+                  <path d={ICONS.modules} />
+                </svg>
               </div>
-              <div class="stat-label">{uiStore.L.config.mountSource}</div>
+              <span class="metric-value">{mountedCount()}</span>
+              <span class="metric-label">{uiStore.L.status.moduleActive}</span>
+            </Show>
+          </div>
+
+          <div class="metric-card">
+            <Show
+              when={!sysStore.loading}
+              fallback={<Skeleton class="skeleton-metric" />}
+            >
+              <div class="metric-icon-bg">
+                <svg viewBox="0 0 24 24">
+                  <path d={ICONS.ksu} />
+                </svg>
+              </div>
+              <span class="metric-value">{configStore.config.mountsource}</span>
+              <span class="metric-label">{uiStore.L.config.mountSource}</span>
             </Show>
           </div>
         </div>
 
-        <div class="details-card">
+        <div class="info-card">
           <div class="card-title">{uiStore.L.status.sysInfoTitle}</div>
-          <div class="info-list">
-            <div class="info-item">
-              <span class="info-label">{uiStore.L.status.androidLabel}</span>
-              <Show
-                when={!sysStore.loading}
-                fallback={<Skeleton width="60px" height="16px" />}
-              >
-                <span class="info-val">{sysStore.device.android}</span>
-              </Show>
-            </div>
 
-            <div class="info-item">
-              <span class="info-label">{uiStore.L.status.selinuxLabel}</span>
-              <Show
-                when={!sysStore.loading}
-                fallback={<Skeleton width="80px" height="16px" />}
-              >
-                <span class={`info-val ${isSelinuxEnforcing() ? "" : "warn"}`}>
-                  {sysStore.device.selinux}
-                </span>
-              </Show>
-            </div>
+          <div class="info-row">
+            <span class="info-key">{uiStore.L.status.kernelLabel}</span>
+            <Show
+              when={!sysStore.loading}
+              fallback={<Skeleton class="skeleton-info-wide" />}
+            >
+              <span class="info-val">{sysStore.systemInfo.kernel || "-"}</span>
+            </Show>
+          </div>
 
-            <div class="info-item full-width">
-              <span class="info-label">{uiStore.L.status.kernelLabel}</span>
-              <Show
-                when={!sysStore.loading}
-                fallback={<Skeleton width="100%" height="16px" />}
-              >
-                <span class="info-val mono">{sysStore.device.kernel}</span>
-              </Show>
-            </div>
+          <div class="info-row">
+            <span class="info-key">{uiStore.L.status.selinuxLabel}</span>
+            <Show
+              when={!sysStore.loading}
+              fallback={<Skeleton class="skeleton-info-narrow" />}
+            >
+              <span class="info-val">{sysStore.systemInfo.selinux || "-"}</span>
+            </Show>
           </div>
         </div>
       </div>
 
       <BottomActions>
         <div class="spacer" />
-        <md-filled-tonal-icon-button
-          class="reboot-btn"
-          on:click={() => setShowRebootConfirm(true)}
-          prop:title={uiStore.L.common.reboot}
-        >
-          <md-icon>
-            <svg viewBox="0 0 24 24">
-              <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z" />
-            </svg>
-          </md-icon>
-        </md-filled-tonal-icon-button>
+        <div class="action-row">
+          <md-filled-tonal-icon-button
+            class="reboot-btn"
+            onClick={() => setShowRebootConfirm(true)}
+            title={uiStore.L.common.reboot}
+          >
+            <md-icon>
+              <svg viewBox="0 0 24 24">
+                <path d={ICONS.power} />
+              </svg>
+            </md-icon>
+          </md-filled-tonal-icon-button>
 
-        <md-filled-tonal-icon-button
-          on:click={() => sysStore.loadStatus()}
-          prop:disabled={sysStore.loading}
-          prop:title={uiStore.L.status.refresh}
-        >
-          <md-icon>
-            <svg viewBox="0 0 24 24">
-              <path d={ICONS.refresh} />
-            </svg>
-          </md-icon>
-        </md-filled-tonal-icon-button>
+          <md-filled-tonal-icon-button
+            onClick={() => {
+              sysStore.loadStatus();
+            }}
+            disabled={sysStore.loading}
+            title={uiStore.L.status.refresh}
+          >
+            <md-icon>
+              <svg viewBox="0 0 24 24">
+                <path d={ICONS.refresh} />
+              </svg>
+            </md-icon>
+          </md-filled-tonal-icon-button>
+        </div>
       </BottomActions>
     </>
   );

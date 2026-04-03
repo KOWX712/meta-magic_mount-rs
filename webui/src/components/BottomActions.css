@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Magic Mount-rs Authors
+ * Copyright 2025 Meta-Hybrid Mount Authors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -36,12 +36,4 @@
 }
 .bottom-actions-root > .spacer {
   flex: 1;
-  pointer-events: none;
-  box-shadow: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bottom-actions-root {
-    transition: opacity 0.01s linear;
-  }
 }

@@ -7,7 +7,7 @@ TG_API_ID = 611335
 TG_API_HASH = "d524b414d21f4d37f08684c1df41ac9c"
 TG_MSG_TEMPLATE = """
 New push to Github
-```gitcommit
+```
 {commit_message}
 ```
 See commit detail [here]({commit_url})

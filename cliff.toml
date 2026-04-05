@@ -92,8 +92,9 @@ commit_parsers = [
     { message = "^chore|^ci", group = "<!-- 8 --> Miscellaneous Tasks" },
     { body = ".*security", group = "<!-- 9 --> Security" },
     { message = '^Revert "(\w+)', group = "<!-- 10 --> Reverts" },
-    { message = "^adj", group = "<!-- 11 --> Adjust"},
-    { message = ".*", group = "<!-- 11 --> Other" },
+    { message = "^adj", group = "<!-- 11 --> Adjust" },
+    { message = "^i18n", group = "<!-- 12 --> i18n" },
+    { message = ".*", group = "<!-- 13 --> Other" },
 ]
 
 # Exclude commits that are not matched by any commit parser.

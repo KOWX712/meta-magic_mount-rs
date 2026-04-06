@@ -8,6 +8,17 @@ use std::{
 
 use ksu::TryUmount;
 
+pub static KSU: AtomicBool = AtomicBool::new(false);
+
+pub fn check_ksu() {
+    let status = ksu::version().is_some_and(|v| {
+        log::info!("KernelSU Version: {v}");
+        true
+    });
+
+    KSU.store(status, std::sync::atomic::Ordering::Relaxed);
+}
+
 static LAST: AtomicBool = AtomicBool::new(false);
 pub static LIST: LazyLock<Mutex<TryUmount>> = LazyLock::new(|| Mutex::new(TryUmount::new()));
 
@@ -15,7 +26,7 @@ pub fn send_unmountable<P>(target: P)
 where
     P: AsRef<Path>,
 {
-    if !super::KSU.load(std::sync::atomic::Ordering::Relaxed) {
+    if !KSU.load(std::sync::atomic::Ordering::Relaxed) {
         return;
     }
 

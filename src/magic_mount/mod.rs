@@ -16,7 +16,7 @@ use rustix::mount::{
 };
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
-use crate::utils::ksucalls::try_umount::{LIST, send_unmountable};
+use crate::utils::ksucalls::{LIST, send_unmountable};
 use crate::{
     magic_mount::{
         node::{Node, NodeFileType},

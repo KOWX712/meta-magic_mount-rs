@@ -10,7 +10,11 @@
   --hero-card-fg: var(--md-sys-color-on-primary);
   --hero-subtitle-bg: rgba(255, 255, 255, 0.2);
   --hero-subtitle-border: rgba(255, 255, 255, 0.3);
-  --hero-star-opacity: 0.18;
+  --hero-star-opacity: 0.26;
+  --hero-blossom-petal: var(--md-sys-color-error-container);
+  --hero-blossom-core: var(--md-sys-color-error);
+  --hero-blossom-seed: var(--md-sys-color-on-error-container);
+  --hero-blossom-outline: var(--md-sys-color-on-error-container);
   background-color: var(--hero-card-bg);
   color: var(--hero-card-fg);
   border-radius: 28px;
@@ -33,14 +37,42 @@
   z-index: 0;
 }
 
-.hero-corner-star {
+.hero-corner-blossom {
   position: absolute;
-  right: 20px;
-  bottom: 18px;
-  width: 24px;
-  height: 24px;
-  fill: currentColor;
+  right: -8px;
+  bottom: -12px;
+  width: 138px;
+  height: 138px;
   opacity: var(--hero-star-opacity);
+  transform: rotate(-18deg);
+  transform-origin: center;
+}
+
+.hero-blossom-petals {
+  fill: var(--hero-blossom-petal);
+}
+
+.hero-blossom-outline {
+  fill: none;
+  mask: url(#hero-blossom-outline-mask);
+  stroke: color-mix(in srgb, var(--hero-blossom-outline) 42%, transparent);
+  stroke-width: 1.15;
+  stroke-linejoin: round;
+}
+
+.hero-blossom-core circle {
+  fill: var(--hero-blossom-core);
+}
+
+.hero-blossom-stamens path {
+  fill: none;
+  stroke: var(--hero-blossom-seed);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+}
+
+.hero-blossom-stamens circle {
+  fill: var(--hero-blossom-seed);
 }
 
 .hero-content {
@@ -150,7 +182,11 @@
     --hero-card-fg: var(--md-sys-color-on-primary-container);
     --hero-subtitle-bg: rgba(255, 255, 255, 0.08);
     --hero-subtitle-border: rgba(255, 255, 255, 0.12);
-    --hero-star-opacity: 0.12;
+    --hero-star-opacity: 0.2;
+    --hero-blossom-petal: var(--md-sys-color-error-container);
+    --hero-blossom-core: var(--md-sys-color-error);
+    --hero-blossom-seed: var(--md-sys-color-on-error-container);
+    --hero-blossom-outline: var(--md-sys-color-on-error-container);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   }
 }

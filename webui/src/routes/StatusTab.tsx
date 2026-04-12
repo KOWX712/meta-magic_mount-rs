@@ -14,9 +14,6 @@ import "@material/web/icon/icon.js";
 import "@material/web/iconbutton/filled-tonal-icon-button.js";
 import "./StatusTab.css";
 
-const STAR_PATH =
-  "M12 2.25c.19 5.34 4.41 9.56 9.75 9.75-5.34.19-9.56 4.41-9.75 9.75-.19-5.34-4.41-9.56-9.75-9.75C7.59 11.81 11.81 7.59 12 2.25z";
-
 export default function StatusTab() {
   const [showRebootConfirm, setShowRebootConfirm] = createSignal(false);
 
@@ -56,8 +53,88 @@ export default function StatusTab() {
       <div class="dashboard-grid">
         <div class="hero-card">
           <div class="hero-bg-decoration">
-            <svg class="hero-corner-star" viewBox="0 0 24 24">
-              <path d={STAR_PATH} />
+            <svg class="hero-corner-blossom" viewBox="0 0 120 120">
+              <defs>
+                <path
+                  id="hero-blossom-petal-shape"
+                  d="M60 8C73 8 84 20 84 34C84 52 71 64 64 72C62 74 61 77 60 82C59 77 58 74 56 72C49 64 36 52 36 34C36 20 47 8 60 8Z"
+                />
+                <mask id="hero-blossom-outline-mask">
+                  <rect width="120" height="120" fill="white" />
+                  <g fill="black">
+                    <use href="#hero-blossom-petal-shape" />
+                    <use
+                      href="#hero-blossom-petal-shape"
+                      transform="rotate(72 60 60)"
+                    />
+                    <use
+                      href="#hero-blossom-petal-shape"
+                      transform="rotate(144 60 60)"
+                    />
+                    <use
+                      href="#hero-blossom-petal-shape"
+                      transform="rotate(216 60 60)"
+                    />
+                    <use
+                      href="#hero-blossom-petal-shape"
+                      transform="rotate(288 60 60)"
+                    />
+                  </g>
+                </mask>
+              </defs>
+              <g class="hero-blossom-petals">
+                <use href="#hero-blossom-petal-shape" />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(72 60 60)"
+                />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(144 60 60)"
+                />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(216 60 60)"
+                />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(288 60 60)"
+                />
+              </g>
+              <g class="hero-blossom-outline">
+                <use href="#hero-blossom-petal-shape" />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(72 60 60)"
+                />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(144 60 60)"
+                />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(216 60 60)"
+                />
+                <use
+                  href="#hero-blossom-petal-shape"
+                  transform="rotate(288 60 60)"
+                />
+              </g>
+              <g class="hero-blossom-core">
+                <circle cx="60" cy="60" r="2" />
+              </g>
+              <g class="hero-blossom-stamens">
+                <path d="M60 52Q52 41 60 30" />
+                <path d="M60 52Q52 41 60 30" transform="rotate(72 60 60)" />
+                <path d="M60 52Q52 41 60 30" transform="rotate(144 60 60)" />
+                <path d="M60 52Q52 41 60 30" transform="rotate(216 60 60)" />
+                <path d="M60 52Q52 41 60 30" transform="rotate(288 60 60)" />
+                <circle cx="60" cy="30" r="2.8" />
+                <circle cx="60" cy="30" r="2.8" transform="rotate(72 60 60)" />
+                <circle cx="60" cy="30" r="2.8" transform="rotate(144 60 60)" />
+                <circle cx="60" cy="30" r="2.8" transform="rotate(216 60 60)" />
+                <circle cx="60" cy="30" r="2.8" transform="rotate(288 60 60)" />
+              </g>
             </svg>
           </div>
           <Show

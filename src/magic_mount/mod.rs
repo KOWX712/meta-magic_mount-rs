@@ -16,7 +16,7 @@ use rustix::mount::{
 };
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
-use crate::utils::ksucalls::{LIST, send_unmountable};
+use crate::utils::ksucalls::send_unmountable;
 use crate::{
     magic_mount::{
         node::{Node, NodeFileType},
@@ -339,14 +339,9 @@ where
         .do_mount()?;
         #[cfg(any(target_os = "linux", target_os = "android"))]
         {
-            if crate::utils::ksucalls::KSU.load(std::sync::atomic::Ordering::Relaxed) {
-                use ksu::TryUmountFlags;
+            use crate::utils::ksucalls::unmount;
 
-                let mut ksu = LIST.lock().unwrap();
-                ksu.flags(TryUmountFlags::MNT_DETACH);
-                ksu.format_msg(|p| format!("umount {p:?} successful"));
-                ksu.umount()?;
-            }
+            unmount()?;
         }
     } else {
         log::info!("no modules to mount, skipping!");

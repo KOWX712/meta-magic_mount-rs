@@ -136,11 +136,12 @@ impl Node {
         P: AsRef<Path>,
     {
         let list = IGNORE_LIST.get().unwrap();
+        let path = path.as_ref().to_string_lossy();
         if let Some(f) = list
             && f.iter().any(|s| {
                 glob::Pattern::new(&s)
-                    .unwrap_or_default()
-                    .matches(path.as_ref().to_str().unwrap_or_default())
+                    .map(|s| s.matches(&path))
+                    .unwrap_or(false)
             })
         {
             return true;

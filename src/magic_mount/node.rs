@@ -139,9 +139,8 @@ impl Node {
         let path = path.as_ref().to_string_lossy();
         if let Some(f) = list
             && f.iter().any(|s| {
-                glob::Pattern::new(&s)
-                    .map(|s| s.matches(&path))
-                    .unwrap_or(false)
+                glob::Pattern::new(s)
+                    .is_ok_and(|s| s.matches(&path))
             })
         {
             return true;

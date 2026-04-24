@@ -25,7 +25,6 @@ mod utils;
 use std::path::Path;
 
 use anyhow::Result;
-use mimalloc::MiMalloc;
 use rustix::mount::{MountFlags, mount};
 
 use crate::{
@@ -33,9 +32,6 @@ use crate::{
     defs::MODULE_PATH,
     misc::cleanup,
 };
-
-#[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
 
 fn main() -> Result<()> {
     misc::pre_init();

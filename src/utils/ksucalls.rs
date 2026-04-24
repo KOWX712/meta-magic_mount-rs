@@ -17,12 +17,12 @@ use std::{
     sync::{LazyLock, Mutex, atomic::AtomicBool},
 };
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
 use anyhow::Result;
-#[cfg(any(target_os = "linux", target_os = "android"))]
 use ksu::{TryUmount, TryUmountFlags};
 
 static KSU: AtomicBool = AtomicBool::new(false);
+static FLAG: AtomicBool = AtomicBool::new(false);
+static LIST: LazyLock<Mutex<TryUmount>> = LazyLock::new(|| Mutex::new(TryUmount::new()));
 
 pub fn check_ksu() {
     let status = ksu::version().is_some_and(|v| {
@@ -32,9 +32,6 @@ pub fn check_ksu() {
 
     KSU.store(status, std::sync::atomic::Ordering::Relaxed);
 }
-
-static FLAG: AtomicBool = AtomicBool::new(false);
-static LIST: LazyLock<Mutex<TryUmount>> = LazyLock::new(|| Mutex::new(TryUmount::new()));
 
 pub fn send_unmountable<P>(target: P)
 where
@@ -51,7 +48,6 @@ where
     LIST.lock().unwrap().add(target);
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn unmount() -> Result<()> {
     if KSU.load(std::sync::atomic::Ordering::Relaxed) {
         let mut control = LIST.lock().unwrap();

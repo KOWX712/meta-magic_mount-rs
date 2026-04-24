@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
 pub mod ksucalls;
 use std::{
     fs::{self, create_dir_all},
@@ -21,7 +20,6 @@ use std::{
 };
 
 use anyhow::{Context, Result, anyhow, bail};
-#[cfg(any(target_os = "linux", target_os = "android"))]
 use extattr::{Flags as XattrFlags, lgetxattr, lsetxattr};
 use regex_lite::Regex;
 
@@ -64,7 +62,6 @@ pub fn lsetfilecon<P: AsRef<Path>>(path: P, con: &str) -> Result<()> {
     Ok(())
 }
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn lgetfilecon<P>(path: P) -> Result<String>
 where
     P: AsRef<Path>,
@@ -77,14 +74,6 @@ where
     })?;
     let con = String::from_utf8_lossy(&con);
     Ok(con.to_string())
-}
-
-#[cfg(not(any(target_os = "linux", target_os = "android")))]
-pub fn lgetfilecon<P>(path: P) -> Result<String>
-where
-    P: AsRef<Path>,
-{
-    unimplemented!()
 }
 
 pub fn ensure_dir_exists<P>(dir: P) -> Result<()>
@@ -100,7 +89,9 @@ where
 }
 
 pub fn update_desc(file: u32, symbol: u32, ignore: u32) -> Result<()> {
-    let text = format!("[😋 {file},{symbol},{ignore}]\\nAn implementation of a metamodule using Magic Mount.");
+    let text = format!(
+        "[😋 {file},{symbol},{ignore}]\\nAn implementation of a metamodule using Magic Mount."
+    );
 
     let prop = fs::read_to_string(defs::MODULE_PROP)?;
     let mut temp = tempfile::Builder::new().tempfile()?;

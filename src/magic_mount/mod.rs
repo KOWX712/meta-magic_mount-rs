@@ -26,14 +26,15 @@ use rustix::mount::{
     MountFlags, MountPropagationFlags, mount, mount_bind, mount_change, mount_move, mount_remount,
 };
 
-#[cfg(any(target_os = "linux", target_os = "android"))]
-use crate::utils::ksucalls::send_unmountable;
 use crate::{
     magic_mount::{
         node::{Node, NodeFileType},
         utils::{clone_symlink, collect_module_files, mount_mirror},
     },
-    utils::ensure_dir_exists,
+    utils::{
+        ensure_dir_exists,
+        ksucalls::{send_unmountable, unmount},
+    },
 };
 
 static MOUNTDED_FILES: AtomicU32 = AtomicU32::new(0);
@@ -45,18 +46,11 @@ struct MagicMount {
     path: PathBuf,
     work_dir_path: PathBuf,
     has_tmpfs: bool,
-    #[cfg(any(target_os = "linux", target_os = "android"))]
     umount: bool,
 }
 
 impl MagicMount {
-    fn new<P>(
-        node: &Node,
-        path: P,
-        work_dir_path: P,
-        has_tmpfs: bool,
-        #[cfg(any(target_os = "linux", target_os = "android"))] umount: bool,
-    ) -> Self
+    fn new<P>(node: &Node, path: P, work_dir_path: P, has_tmpfs: bool, umount: bool) -> Self
     where
         P: AsRef<Path>,
     {
@@ -65,7 +59,6 @@ impl MagicMount {
             path: path.as_ref().join(node.name.clone()),
             work_dir_path: work_dir_path.as_ref().join(node.name.clone()),
             has_tmpfs,
-            #[cfg(any(target_os = "linux", target_os = "android"))]
             umount,
         }
     }
@@ -127,7 +120,6 @@ impl MagicMount {
         );
 
         mount_bind(module_path, target).with_context(|| {
-            #[cfg(any(target_os = "linux", target_os = "android"))]
             if self.umount {
                 // tell ksu about this mount
                 send_unmountable(target);
@@ -229,7 +221,6 @@ impl MagicMount {
                     &self.path,
                     &self.work_dir_path,
                     has_tmpfs,
-                    #[cfg(any(target_os = "linux", target_os = "android"))]
                     self.umount,
                 )
                 .do_mount()
@@ -270,7 +261,6 @@ impl MagicMount {
                 log::warn!("make dir {} private: {e:#?}", self.path.display());
             }
 
-            #[cfg(any(target_os = "linux", target_os = "android"))]
             if self.umount {
                 // tell ksu about this one too
                 send_unmountable(&self.path);
@@ -295,7 +285,6 @@ impl MagicMount {
                         &self.path,
                         &self.work_dir_path,
                         has_tmpfs,
-                        #[cfg(any(target_os = "linux", target_os = "android"))]
                         self.umount,
                     )
                     .do_mount()
@@ -325,7 +314,7 @@ pub fn magic_mount<P>(
     module_dir: &Path,
     mount_source: &str,
     extra_partitions: &[String],
-    #[cfg(any(target_os = "linux", target_os = "android"))] umount: bool,
+    umount: bool,
 ) -> Result<()>
 where
     P: AsRef<Path>,
@@ -339,21 +328,8 @@ where
         mount(mount_source, &tmp_dir, "tmpfs", MountFlags::empty(), None).context("mount tmp")?;
         mount_change(&tmp_dir, MountPropagationFlags::PRIVATE).context("make tmp private")?;
 
-        MagicMount::new(
-            &root,
-            Path::new("/"),
-            tmp_dir.as_path(),
-            false,
-            #[cfg(any(target_os = "linux", target_os = "android"))]
-            umount,
-        )
-        .do_mount()?;
-        #[cfg(any(target_os = "linux", target_os = "android"))]
-        {
-            use crate::utils::ksucalls::unmount;
-
-            unmount()?;
-        }
+        MagicMount::new(&root, Path::new("/"), tmp_dir.as_path(), false, umount).do_mount()?;
+        unmount()?;
     } else {
         log::info!("no modules to mount, skipping!");
     }

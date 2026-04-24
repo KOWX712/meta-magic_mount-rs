@@ -46,7 +46,6 @@ pub struct Config {
     #[serde(default = "default_mountsource")]
     pub mountsource: String,
     pub partitions: Vec<String>,
-    #[cfg(any(target_os = "linux", target_os = "android"))]
     pub umount: bool,
 }
 
@@ -68,30 +67,19 @@ impl Default for Config {
         Self {
             mountsource: default_mountsource(),
             partitions: Vec::new(),
-            #[cfg(any(target_os = "linux", target_os = "android"))]
             umount: false,
         }
     }
 }
 
 impl Config {
-    #[cfg(any(target_os = "linux", target_os = "android"))]
     const fn umount_enabled(&self) -> bool {
         self.umount
     }
 
-    #[cfg(not(any(target_os = "linux", target_os = "android")))]
-    const fn umount_enabled(&self) -> bool {
-        false
-    }
-
-    #[cfg(any(target_os = "linux", target_os = "android"))]
     const fn set_umount_enabled(&mut self, enabled: bool) {
         self.umount = enabled;
     }
-
-    #[cfg(not(any(target_os = "linux", target_os = "android")))]
-    const fn set_umount_enabled(&mut self, _enabled: bool) {}
 
     pub fn load() -> Result<Self> {
         let content =

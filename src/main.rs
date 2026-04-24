@@ -34,6 +34,9 @@ use crate::{
 };
 
 fn main() -> Result<()> {
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    compile_error!("unsupported platform!");
+
     misc::pre_init();
 
     let args: Vec<_> = std::env::args().collect();
@@ -93,7 +96,6 @@ fn main() -> Result<()> {
         Path::new(MODULE_PATH),
         &config.mountsource,
         &config.partitions,
-        #[cfg(any(target_os = "linux", target_os = "android"))]
         config.umount,
     );
 

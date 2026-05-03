@@ -14,9 +14,9 @@
 
 use rustix::mount::mount_bind;
 
-use crate::{errors::Result, parser::COMMAND_LIST};
+use crate::{errors::Result, parser::COMMAND_LIST, utils::ksucalls::send_unmountable};
 
-pub fn bind_mount() -> Result<()> {
+pub fn bind_mount(umount: bool) -> Result<()> {
     let bind_mount_list: Vec<_> = COMMAND_LIST
         .get()
         .unwrap()
@@ -31,7 +31,10 @@ pub fn bind_mount() -> Result<()> {
         .collect();
 
     for (s, t) in bind_mount_list {
-        mount_bind(s, t)?;
+        mount_bind(s, &t)?;
+        if umount {
+            send_unmountable(&t);
+        }
     }
     Ok(())
 }

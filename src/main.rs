@@ -108,7 +108,7 @@ fn main() -> Result<()> {
     match result {
         Ok(()) => {
             log::info!("Magic Mount Completed Successfully");
-            let result = bind_mount();
+            let result = bind_mount(config.umount);
 
             match result {
                 Ok(()) => {
